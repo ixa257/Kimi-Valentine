@@ -23,17 +23,27 @@
     }
 
     *{box-sizing:border-box}
+
+    /* ✅ FIX SCROLL (iPhone/Android) + layout que no corta el póster */
     body{
       margin:0;
       min-height:100vh;
-      display:grid;
-      place-items:center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
+
       background: radial-gradient(1200px 600px at 20% 20%, var(--bg2), transparent 60%),
                   radial-gradient(1200px 600px at 80% 60%, var(--bg1), transparent 55%),
                   linear-gradient(135deg, #fff, #ffeaf3);
-      overflow:hidden;
+
+      overflow-x: hidden;
+      overflow-y: auto; /* ✅ ahora sí */
+      -webkit-overflow-scrolling: touch; /* ✅ scroll suave iOS */
+
+      /* En vez de centrar verticalmente (corta contenido), alineamos arriba */
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding: 22px 12px 40px;
     }
 
     .hearts{
@@ -93,12 +103,12 @@
       user-select:none;
     }
 
-    /* --- MEJORAS: más espacio para texto + evita solapes --- */
+    /* ✅ Espacio extra para que el “Sí” nunca invada el texto */
     #title { margin-bottom: 10px; }
 
     #subtitle{
-      min-height: 64px;              /* reserva espacio para frases largas */
-      margin-bottom: 26px;           /* MÁS espacio antes de los botones */
+      min-height: 64px;
+      margin-bottom: 26px;   /* aire antes de botones */
       padding: 0 10px;
     }
 
@@ -123,36 +133,23 @@
       will-change: transform;
       max-width: 92vw;
       line-height: 1.1;
-      white-space: normal; /* permite partir texto si hace falta */
+      white-space: normal;
+      touch-action: manipulation; /* ✅ mejora taps en iOS */
     }
     button:active{ transform: translateY(1px) scale(.99); }
 
-    .yes{
-      background:var(--yes);
-      color:white;
-    }
-    .no{
-      background:var(--no);
-      color:white;
-      opacity:.9;
-    }
+    .yes{ background:var(--yes); color:white; }
+    .no{ background:var(--no); color:white; opacity:.9; }
 
-    .hint{
-      margin-top:12px;
-      font-size:13px;
-      opacity:.75;
-    }
-    .footer{
-      margin-top:10px;
-      font-size:12px;
-      opacity:.65;
-    }
+    .hint{ margin-top:12px; font-size:13px; opacity:.75; }
+    .footer{ margin-top:10px; font-size:12px; opacity:.65; }
 
     /* Confetti */
     .confetti{
       position:fixed; inset:0;
       pointer-events:none;
       display:none;
+      z-index: 9999;
     }
     .confetti.show{ display:block; }
     .piece{
@@ -183,7 +180,7 @@
 
     .wantedWrap{
       margin:18px auto 8px;
-      width:min(520px, 92%);
+      width:min(520px, 100%);
       background: linear-gradient(145deg, var(--wanted-paper-1), var(--wanted-paper-2));
       border-radius:18px;
       padding:18px;
@@ -240,7 +237,7 @@
       overflow:hidden;
     }
 
-    /* --- FOTO + FILTRO PAPEL ANTIGUO --- */
+    /* ✅ Foto + filtro papel antiguo */
     #wantedImg{
       width: 100%;
       height: 100%;
@@ -336,7 +333,7 @@
           <div class="wantedTitle">WANTED</div>
           <div class="wantedSub">DEAD OR ALIVE</div>
 
-          <!-- IMPORTANTE: sube tu foto a /assets/kimi.jpg -->
+          <!-- ✅ Sube tu foto a /assets/kimi.jpg -->
           <div class="wantedPortrait" id="wantedPortrait">
             <img id="wantedImg" alt="Kimi" src="assets/kimi.jpg">
           </div>
@@ -361,16 +358,13 @@
         <button class="no" id="restartBtn" style="opacity:.85;">Repetir (por diversión) 🔁</button>
       </div>
 
-      <div class="tiny">Tip: haz captura del cartel “WANTED” y mándamela 😌</div>
+      <div class="tiny">Tip: ahora puedes hacer scroll para ver todo el póster 😌</div>
     </div>
   </div>
 
   <div class="confetti" id="confetti"></div>
 
   <script>
-    // =========================
-    // CONFIG (edita aquí)
-    // =========================
     const CONFIG = {
       nombreFirma: "Israel",
       nombreNovia: "Kimi",
@@ -410,9 +404,6 @@
       ]
     };
 
-    // =========================
-    // DOM
-    // =========================
     const title = document.getElementById("title");
     const subtitle = document.getElementById("subtitle");
     const yesBtn = document.getElementById("yesBtn");
@@ -437,7 +428,6 @@
     const copyBtn = document.getElementById("copyBtn");
     const restartBtn = document.getElementById("restartBtn");
 
-    // Init
     name.textContent = CONFIG.nombreFirma;
 
     wantedName.textContent = CONFIG.nombreNovia.toUpperCase();
@@ -487,13 +477,15 @@
       successTitle.textContent = `¡SÍÍÍ, ${CONFIG.nombreNovia}! 💘`;
       successEmoji.textContent = "🥳";
       launchConfetti();
+
+      // ✅ Para que al aceptar se vea desde arriba y puedas scrollear el póster completo
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function reset(){
       frameIndex = 0;
       setFrame(0);
 
-      // reset buttons to base
       yesBtn.style.fontSize = "16px";
       yesBtn.style.padding = "12px 18px";
       yesBtn.style.transform = "none";
@@ -505,6 +497,8 @@
 
       success.classList.remove("show");
       main.style.display = "block";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     yesBtn.addEventListener("click", accept);
@@ -513,15 +507,15 @@
       frameIndex = Math.min(frameIndex + 1, CONFIG.frames.length - 1);
       setFrame(frameIndex);
 
-      // --- CRECIMIENTO LEGIBLE (sin invadir el texto) ---
+      // ✅ crecimiento legible (no invade texto)
       const baseFont = 16;
-      const font = Math.min(baseFont + frameIndex * 2.2, 26); // tope 26px
+      const font = Math.min(baseFont + frameIndex * 2.2, 26);
       const padY = Math.min(12 + frameIndex * 1.2, 18);
       const padX = Math.min(18 + frameIndex * 2.0, 34);
 
       yesBtn.style.fontSize = font + "px";
       yesBtn.style.padding = `${padY}px ${padX}px`;
-      yesBtn.style.transform = "none"; // por si quedó scale viejo
+      yesBtn.style.transform = "none";
 
       // No se encoge suave
       const scaleNo = Math.max(1 - frameIndex * 0.07, 0.72);
@@ -552,7 +546,6 @@ Atte: ${CONFIG.nombreNovia}
 
     restartBtn.addEventListener("click", reset);
 
-    // First frame
     setFrame(0);
   </script>
 </body>
