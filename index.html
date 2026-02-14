@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💘 Kimi… ¿quieres ser mi San Valentín?</title>
+
+  <style>
+    :root{
+      --bg1:#ffe6ef;
+      --bg2:#fff7fb;
+      --card:#ffffffcc;
+      --text:#2b2b2b;
+      --yes:#ff3b7a;
+      --no:#111;
+      --shadow: 0 20px 60px rgba(0,0,0,.12);
+      --radius: 20px;
+
+      --wanted-paper-1:#f2e4c7;
+      --wanted-paper-2:#e7d4ad;
+      --wanted-ink:#2a1f14;
+      --wanted-shadow: 0 18px 50px rgba(0,0,0,.22);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% 20%, var(--bg2), transparent 60%),
+                  radial-gradient(1200px 600px at 80% 60%, var(--bg1), transparent 55%),
+                  linear-gradient(135deg, #fff, #ffeaf3);
+      overflow:hidden;
+    }
+
+    .hearts{
+      position:fixed; inset:0; pointer-events:none; opacity:.35;
+      background:
+        radial-gradient(circle at 10% 20%, #ff3b7a33 0 10px, transparent 11px),
+        radial-gradient(circle at 70% 30%, #ff3b7a22 0 14px, transparent 15px),
+        radial-gradient(circle at 40% 80%, #ff3b7a22 0 12px, transparent 13px),
+        radial-gradient(circle at 90% 75%, #ff3b7a22 0 16px, transparent 17px);
+      filter: blur(.3px);
+    }
+
+    .card{
+      width:min(620px, 92vw);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.6);
+      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+      padding:26px 22px;
+      text-align:center;
+      position:relative;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#ffffffd6;
+      border:1px solid rgba(0,0,0,.06);
+      font-weight:650;
+      font-size:14px;
+    }
+
+    h1{
+      margin:14px 0 6px;
+      font-size: clamp(26px, 4vw, 36px);
+      letter-spacing:-.6px;
+    }
+
+    p{
+      margin:0 0 16px;
+      font-size:16px;
+      line-height:1.45;
+      opacity:.92;
+    }
+
+    .gif{
+      width:170px; height:170px;
+      margin:14px auto 10px;
+      border-radius:999px;
+      display:grid; place-items:center;
+      background: radial-gradient(circle at 30% 30%, #fff, #ffe1ec);
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow: 0 10px 30px rgba(255,59,122,.12);
+      font-size:70px;
+      user-select:none;
+    }
+
+    /* --- MEJORAS: más espacio para texto + evita solapes --- */
+    #title { margin-bottom: 10px; }
+
+    #subtitle{
+      min-height: 64px;              /* reserva espacio para frases largas */
+      margin-bottom: 26px;           /* MÁS espacio antes de los botones */
+      padding: 0 10px;
+    }
+
+    .actions{
+      display:flex;
+      gap:14px;
+      justify-content:center;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+
+    button{
+      border:0;
+      border-radius:14px;
+      padding:12px 18px;
+      font-size:16px;
+      font-weight:750;
+      cursor:pointer;
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+      box-shadow: 0 10px 22px rgba(0,0,0,.10);
+      will-change: transform;
+      max-width: 92vw;
+      line-height: 1.1;
+      white-space: normal; /* permite partir texto si hace falta */
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+
+    .yes{
+      background:var(--yes);
+      color:white;
+    }
+    .no{
+      background:var(--no);
+      color:white;
+      opacity:.9;
+    }
+
+    .hint{
+      margin-top:12px;
+      font-size:13px;
+      opacity:.75;
+    }
+    .footer{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.65;
+    }
+
+    /* Confetti */
+    .confetti{
+      position:fixed; inset:0;
+      pointer-events:none;
+      display:none;
+    }
+    .confetti.show{ display:block; }
+    .piece{
+      position:absolute;
+      width:10px; height:16px;
+      top:-20px;
+      opacity:.9;
+      transform: rotate(0deg);
+      animation: fall linear forwards;
+    }
+    @keyframes fall{
+      to{
+        transform: translateY(110vh) rotate(720deg);
+        opacity:1;
+      }
+    }
+
+    /* Success + Wanted poster */
+    .success{ display:none; }
+    .success.show{
+      display:block;
+      animation: pop .25s ease;
+    }
+    @keyframes pop{
+      from{ transform: scale(.98); opacity:.6; }
+      to{ transform: scale(1); opacity:1; }
+    }
+
+    .wantedWrap{
+      margin:18px auto 8px;
+      width:min(520px, 92%);
+      background: linear-gradient(145deg, var(--wanted-paper-1), var(--wanted-paper-2));
+      border-radius:18px;
+      padding:18px;
+      box-shadow: var(--wanted-shadow);
+      border: 2px solid rgba(42,31,20,.35);
+      position:relative;
+      color:var(--wanted-ink);
+      text-align:center;
+      overflow:hidden;
+    }
+    .wantedWrap:before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0,0,0,.08), transparent 35%),
+        radial-gradient(circle at 80% 70%, rgba(0,0,0,.07), transparent 40%),
+        radial-gradient(circle at 35% 85%, rgba(0,0,0,.06), transparent 45%);
+      filter: blur(.2px);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .wantedInner{ position:relative; z-index:1; }
+
+    .wantedTitle{
+      font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+      letter-spacing:.25em;
+      font-weight:900;
+      font-size: clamp(30px, 5vw, 44px);
+      margin:2px 0 10px;
+    }
+    .wantedSub{
+      font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+      font-weight:700;
+      letter-spacing:.18em;
+      font-size:14px;
+      opacity:.9;
+      margin:0 0 14px;
+    }
+
+    .wantedPortrait{
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      border: 2px solid rgba(42,31,20,.55);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 55%),
+        linear-gradient(145deg, rgba(0,0,0,.12), rgba(0,0,0,.02));
+      display:grid;
+      place-items:center;
+      box-shadow: 0 10px 25px rgba(0,0,0,.18);
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* --- FOTO + FILTRO PAPEL ANTIGUO --- */
+    #wantedImg{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: sepia(0.85) contrast(1.1) brightness(0.95) saturate(0.85);
+      transform: scale(1.03);
+    }
+    .wantedPortrait:after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(255,255,255,.18), transparent 45%),
+        radial-gradient(circle at 70% 70%, rgba(0,0,0,.12), transparent 55%),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.06) 0px,
+          rgba(0,0,0,.06) 1px,
+          transparent 2px,
+          transparent 5px
+        );
+      mix-blend-mode: multiply;
+      opacity: .55;
+      pointer-events:none;
+    }
+
+    .wantedName{
+      font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+      font-weight:900;
+      letter-spacing:.08em;
+      font-size: clamp(24px, 4vw, 34px);
+      margin: 6px 0 8px;
+      text-transform: uppercase;
+    }
+    .wantedCrime{
+      font-size: 14px;
+      margin: 0 0 12px;
+      opacity:.9;
+      line-height:1.35;
+    }
+    .wantedReward{
+      display:inline-block;
+      font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+      font-weight:900;
+      letter-spacing:.12em;
+      padding:10px 14px;
+      border-radius: 14px;
+      border: 2px dashed rgba(42,31,20,.6);
+      background: rgba(255,255,255,.24);
+      margin-bottom: 10px;
+    }
+    .wantedFine{
+      font-size:12px;
+      opacity:.8;
+      margin: 8px 0 0;
+    }
+
+    .tiny{
+      font-size:12px;
+      opacity:.75;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hearts"></div>
+
+  <div class="card" id="card">
+    <div class="badge">🏴‍☠️ Mensaje importante para Kimi</div>
+
+    <div id="main">
+      <div class="gif" id="emoji">🥺</div>
+      <h1 id="title">Kimi… ¿quieres ser mi San Valentín?</h1>
+      <p id="subtitle">Prometo una cita digna del Grand Line 💘</p>
+
+      <div class="actions">
+        <button class="yes" id="yesBtn">Sí 💖</button>
+        <button class="no" id="noBtn">No 🙈</button>
+      </div>
+
+      <div class="hint" id="hint">Tip: el botón “No” es un poquito sospechoso 😅</div>
+      <div class="footer">Hecho con amor por <span id="name">Israel</span> ✨</div>
+    </div>
+
+    <div class="success" id="success">
+      <div class="gif" id="successEmoji">😍</div>
+      <h1 id="successTitle">¡SÍÍÍ! 💘</h1>
+      <p id="successMsg">Kimi, oficialmente eres mi San Valentín. Activamos arco romántico canon 💘🏴‍☠️</p>
+
+      <div class="wantedWrap" id="wanted">
+        <div class="wantedInner">
+          <div class="wantedTitle">WANTED</div>
+          <div class="wantedSub">DEAD OR ALIVE</div>
+
+          <!-- IMPORTANTE: sube tu foto a /assets/kimi.jpg -->
+          <div class="wantedPortrait" id="wantedPortrait">
+            <img id="wantedImg" alt="Kimi" src="assets/kimi.jpg">
+          </div>
+
+          <div class="wantedName" id="wantedName">KIMI</div>
+          <div class="wantedCrime" id="wantedCrime">
+            Buscada por: robar corazones, causar sonrisas y convertir cualquier día en aventura.
+          </div>
+
+          <div class="wantedReward" id="wantedReward">
+            REWARD: ♡ 1,000,000 BESOS
+          </div>
+
+          <div class="wantedFine" id="wantedFine">
+            Si la encuentras, llámame. Prometo tratarla como mi tesoro. 🏴‍☠️✨
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="yes" id="copyBtn">Copiar confirmación 💬</button>
+        <button class="no" id="restartBtn" style="opacity:.85;">Repetir (por diversión) 🔁</button>
+      </div>
+
+      <div class="tiny">Tip: haz captura del cartel “WANTED” y mándamela 😌</div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
+  <script>
+    // =========================
+    // CONFIG (edita aquí)
+    // =========================
+    const CONFIG = {
+      nombreFirma: "Israel",
+      nombreNovia: "Kimi",
+
+      mensajeFinal: "Kimi, oficialmente eres mi San Valentín. Activamos arco romántico canon 💘🏴‍☠️",
+
+      wanted: {
+        crime: "Buscada por: robar corazones, causar sonrisas y convertir cualquier día en aventura.",
+        reward: "REWARD: ♡ 1,000,000 BESOS",
+        fine: "Si la encuentras, llámame. Prometo tratarla como mi tesoro. 🏴‍☠️✨"
+      },
+
+      frames: [
+        { title: "Kimi… ¿quieres ser mi San Valentín?", emoji: "🥺",
+          text: "Prometo una cita digna del Grand Line 💘" },
+
+        { title: "Modo Luffy activado 🏴‍☠️", emoji: "😤",
+          text: "Voy a convertirme en el Rey de los Piratas… pero primero necesito tu ‘Sí’, Kimi." },
+
+        { title: "Nakama check ✅", emoji: "🤨",
+          text: "¿Un ‘No’? Eso no está en mi nakama script 😤" },
+
+        { title: "Zoro se perdió otra vez 🗺️", emoji: "😭",
+          text: "Puede que él se pierda… pero yo no me pierdo sin tu respuesta." },
+
+        { title: "Sanji está cocinando 🍽️", emoji: "😍",
+          text: "La cita ya está lista… no me hagas quedar mal, Kimi." },
+
+        { title: "Usopp reportando 📣", emoji: "😳",
+          text: "Según fuentes 100% confiables… si dices Sí desbloqueamos recompensa legendaria." },
+
+        { title: "Actualización de recompensa 💰", emoji: "💋",
+          text: "Se rumorea que un ‘Sí’ activa una lluvia de besos. Muchísimos." },
+
+        { title: "GEAR 5 activado ⚡", emoji: "🔥",
+          text: "El botón ‘Sí’ ahora es inevitable 😌" }
+      ]
+    };
+
+    // =========================
+    // DOM
+    // =========================
+    const title = document.getElementById("title");
+    const subtitle = document.getElementById("subtitle");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const hint = document.getElementById("hint");
+    const name = document.getElementById("name");
+    const emoji = document.getElementById("emoji");
+
+    const success = document.getElementById("success");
+    const main = document.getElementById("main");
+    const confetti = document.getElementById("confetti");
+
+    const successMsg = document.getElementById("successMsg");
+    const successTitle = document.getElementById("successTitle");
+    const successEmoji = document.getElementById("successEmoji");
+
+    const wantedName = document.getElementById("wantedName");
+    const wantedCrime = document.getElementById("wantedCrime");
+    const wantedReward = document.getElementById("wantedReward");
+    const wantedFine = document.getElementById("wantedFine");
+
+    const copyBtn = document.getElementById("copyBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    // Init
+    name.textContent = CONFIG.nombreFirma;
+
+    wantedName.textContent = CONFIG.nombreNovia.toUpperCase();
+    wantedCrime.textContent = CONFIG.wanted.crime;
+    wantedReward.textContent = CONFIG.wanted.reward;
+    wantedFine.textContent = CONFIG.wanted.fine;
+
+    successMsg.textContent = CONFIG.mensajeFinal;
+
+    let frameIndex = 0;
+
+    function setFrame(i){
+      const f = CONFIG.frames[i];
+      title.textContent = f.title;
+      subtitle.textContent = f.text;
+      emoji.textContent = f.emoji;
+    }
+
+    function randomBetween(min, max){
+      return Math.random() * (max - min) + min;
+    }
+
+    function launchConfetti(){
+      confetti.innerHTML = "";
+      confetti.classList.add("show");
+      const pieces = 140;
+
+      for(let i=0;i<pieces;i++){
+        const d = document.createElement("div");
+        d.className = "piece";
+        d.style.left = randomBetween(0, 100) + "vw";
+        d.style.animationDuration = randomBetween(2.2, 4.4) + "s";
+        d.style.animationDelay = randomBetween(0, 0.55) + "s";
+        d.style.borderRadius = Math.random() > 0.55 ? "3px" : "999px";
+        const hue = Math.floor(randomBetween(0, 360));
+        d.style.background = `hsl(${hue} 90% 60%)`;
+        d.style.transform = `rotate(${Math.floor(randomBetween(0,360))}deg)`;
+        confetti.appendChild(d);
+      }
+
+      setTimeout(()=> confetti.classList.remove("show"), 5200);
+    }
+
+    function accept(){
+      main.style.display = "none";
+      success.classList.add("show");
+      successTitle.textContent = `¡SÍÍÍ, ${CONFIG.nombreNovia}! 💘`;
+      successEmoji.textContent = "🥳";
+      launchConfetti();
+    }
+
+    function reset(){
+      frameIndex = 0;
+      setFrame(0);
+
+      // reset buttons to base
+      yesBtn.style.fontSize = "16px";
+      yesBtn.style.padding = "12px 18px";
+      yesBtn.style.transform = "none";
+
+      noBtn.style.transform = "scale(1)";
+      noBtn.style.opacity = "0.9";
+
+      hint.textContent = "Tip: el botón “No” es un poquito sospechoso 😅";
+
+      success.classList.remove("show");
+      main.style.display = "block";
+    }
+
+    yesBtn.addEventListener("click", accept);
+
+    noBtn.addEventListener("click", () => {
+      frameIndex = Math.min(frameIndex + 1, CONFIG.frames.length - 1);
+      setFrame(frameIndex);
+
+      // --- CRECIMIENTO LEGIBLE (sin invadir el texto) ---
+      const baseFont = 16;
+      const font = Math.min(baseFont + frameIndex * 2.2, 26); // tope 26px
+      const padY = Math.min(12 + frameIndex * 1.2, 18);
+      const padX = Math.min(18 + frameIndex * 2.0, 34);
+
+      yesBtn.style.fontSize = font + "px";
+      yesBtn.style.padding = `${padY}px ${padX}px`;
+      yesBtn.style.transform = "none"; // por si quedó scale viejo
+
+      // No se encoge suave
+      const scaleNo = Math.max(1 - frameIndex * 0.07, 0.72);
+      noBtn.style.transform = `scale(${scaleNo})`;
+      noBtn.style.opacity = String(Math.max(0.9 - frameIndex * 0.1, 0.3));
+
+      hint.textContent = frameIndex >= 4
+        ? "El destino ya está marcado en el Log Pose 😌"
+        : "Esto se está poniendo interesante…";
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      const text =
+`💘 CONFIRMACIÓN OFICIAL 💘
+Sí, acepto ser tu San Valentín 😍
+
+Atte: ${CONFIG.nombreNovia}
+🏴‍☠️ (Nakama certified)`;
+
+      try{
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "¡Copiado! ✅";
+        setTimeout(()=> copyBtn.textContent = "Copiar confirmación 💬", 1700);
+      } catch(e){
+        alert("No se pudo copiar automáticamente. Copia manual:\n\n" + text);
+      }
+    });
+
+    restartBtn.addEventListener("click", reset);
+
+    // First frame
+    setFrame(0);
+  </script>
+</body>
+</html>
